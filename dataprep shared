@@ -49,3 +49,46 @@ ggplot(long_data %>% filter(Sex == "M"), aes(x = AGE, y = Thickness, color = Bra
         legend.text = element_text(size = 8)) +
   guides(color = guide_legend(ncol = 1))
 ```
+```{r}
+data <- data %>%
+  mutate(AgeBracket = cut(AGE, breaks = c(6, 10, 20, 30, 40, 50, 60, 70, 85), right = TRUE))
+```
+
+```{r}
+data <- data %>%
+  mutate(entorhinal_avg = rowMeans(select(., starts_with("lh_entorhinal_thickness")), na.rm = TRUE) + 
+                           rowMeans(select(., starts_with("rh_entorhinal_thickness")), na.rm = TRUE),
+         parahippocampal_avg = rowMeans(select(., starts_with("lh_parahippocampal_thickness")), na.rm = TRUE) + 
+                               rowMeans(select(., starts_with("rh_parahippocampal_thickness")), na.rm = TRUE))
+```
+
+```{r}
+relevant_data <- data %>%
+  select(AgeBracket, Sex, entorhinal_avg, parahippocampal_avg)
+```
+
+```{r}
+average_thickness <- relevant_data %>%
+  group_by(AgeBracket, Sex) %>%
+  summarise(entorhinal_avg = mean(entorhinal_avg, na.rm = TRUE),
+            parahippocampal_avg = mean(parahippocampal_avg, na.rm = TRUE))
+```
+
+```{r}
+long_data <- average_thickness %>%
+  pivot_longer(cols = c(entorhinal_avg, parahippocampal_avg), names_to = "BrainRegion", values_to = "Thickness")
+```
+
+```{r}
+ggplot(long_data, aes(x = AgeBracket, y = Thickness, color = BrainRegion, group = interaction(BrainRegion, Sex), linetype = Sex)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Entorhinal and Parahippocampal Thickness Across Age Brackets by Sex",
+       x = "Age Bracket",
+       y = "Thickness") +
+  theme_minimal() +
+  theme(legend.position = "right",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8)) +
+  guides(color = guide_legend(ncol = 1))
+```
