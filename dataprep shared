@@ -17,7 +17,8 @@ relevant_data <- data %>%
 ```{r}
 average_thickness <- relevant_data %>%
   group_by(AGE, Sex) %>%
-  summarise(across(starts_with("lh_"), mean, na.rm = TRUE))
+  summarise(across(matches("^(lh|rh)_"), mean, na.rm = TRUE))
+
 ```
 ```{r}
 long_data <- average_thickness %>%
