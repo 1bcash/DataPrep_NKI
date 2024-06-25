@@ -1,0 +1,51 @@
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+data <- read.csv('data/nki_thickness_demo.csv')
+```
+
+```{r}
+brain_regions <- grep("_thickness", names(data), value = TRUE)
+relevant_data <- data %>%
+  select(AGE, Sex, all_of(brain_regions))
+```
+
+```{r}
+average_thickness <- relevant_data %>%
+  group_by(AGE, Sex) %>%
+  summarise(across(starts_with("lh_"), mean, na.rm = TRUE))
+```
+```{r}
+long_data <- average_thickness %>%
+  pivot_longer(cols = -c(AGE, Sex), names_to = "BrainRegion", values_to = "Thickness")
+```
+
+```{r}
+ggplot(long_data %>% filter(Sex == "F"), aes(x = AGE, y = Thickness, color = BrainRegion, group = BrainRegion)) +
+  geom_line() +
+  labs(title = "Brain Region Thickness Across Ages - Females",
+       x = "Age",
+       y = "Thickness") +
+  theme_minimal() +
+  theme(legend.position = "right",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8)) +
+  guides(color = guide_legend(ncol = 1))
+```
+
+```{r}
+ggplot(long_data %>% filter(Sex == "M"), aes(x = AGE, y = Thickness, color = BrainRegion, group = BrainRegion)) +
+  geom_line() +
+  labs(title = "Brain Region Thickness Across Ages - Males",
+       x = "Age",
+       y = "Thickness") +
+  theme_minimal() +
+  theme(legend.position = "right",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8)) +
+  guides(color = guide_legend(ncol = 1))
+```
